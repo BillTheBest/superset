@@ -47,6 +47,12 @@ class BaseEngineSpec(object):
     limit_method = LimitMethod.FETCH_MANY
 
     @classmethod
+    def fetch_data(cls, cursor, limit):
+        if cls.limit_method == LimitMethod.FETCH_MANY:
+            return cursor.fetchmany(limit)
+        return cursor.fetchall()
+
+    @classmethod
     def epoch_to_dttm(cls):
         raise NotImplementedError()
 
@@ -161,6 +167,15 @@ class PostgresEngineSpec(BaseEngineSpec):
         Grain("quarter", _('quarter'), "DATE_TRUNC('quarter', {col})"),
         Grain("year", _('year'), "DATE_TRUNC('year', {col})"),
     )
+
+    @classmethod
+    def fetch_data(cls, cursor, limit):
+        if cursor.rowcount <= 0:
+            return []
+        if cls.limit_method == LimitMethod.FETCH_MANY:
+            return cursor.fetchmany(limit)
+        return cursor.fetchall()
+
 
     @classmethod
     def epoch_to_dttm(cls):

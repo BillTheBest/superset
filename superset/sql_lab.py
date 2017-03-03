@@ -119,16 +119,8 @@ def get_sql_results(self, query_id, return_results=True, store_results=False):
     query.status = QueryStatus.RUNNING
     session.flush()
     db_engine_spec.handle_cursor(cursor, query, session)
-
-    try:
-        if db_engine_spec.limit_method == LimitMethod.FETCH_MANY:
-            data = cursor.fetchmany(query.limit)
-        else:
-            data = cursor.fetchall()
-        conn.close()
-    except Exception as e:
-        logging.exception(e)
-        handle_error(db_engine_spec.extract_error_message(e))
+    data = db_engine_spec.fetch_data(cursor, query.limit)
+    conn.close()
 
     column_names = (
         [col[0] for col in cursor.description] if cursor.description else [])
